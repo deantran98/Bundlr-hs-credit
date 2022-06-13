@@ -6,28 +6,31 @@ import Flip from "react-reveal/Flip";
 import LightSpeed from "react-reveal/LightSpeed";
 
 function App() {
-
   const [file, setFile] = useState();
   const [link, setLink] = useState();
+  const [message, setMessage] = useState();
 
   async function upload(e) {
     e.preventDefault();
+    if (file) {
+      setMessage("Please wait while the file is being submitted");
+      const startingTime = new Date()
 
-    const startingTime = new Date()
+      const formData = new FormData();
+      formData.append('uploadedFile', file)
+      const { data } = await api.post(formData);
 
-    const formData = new FormData();
-    formData.append('uploadedFile', file)
-    const { data } = await api.post(formData);
+      setMessage(data.message);
+      if (data?.id) {
+        console.log(data?.id);
+        setLink(`https://arweave.net/${data.id}`)
+      }
 
-    console.log(data.message);
+      const endingTime = new Date()
 
-    if (data?.id) {
-      setLink(`https://arweave.net/${data.id}`)
+      console.log(`The upload/request took ${Math.abs(endingTime - startingTime) / 1000} seconds.`)
     }
 
-    const endingTime = new Date()
-
-    console.log(`Total time for upload is ${Math.abs(endingTime - startingTime) / 1000} seconds`);
   }
 
   const onFileChange = (e) => {
@@ -42,6 +45,7 @@ function App() {
     // Set the text content
     const fileNameAndSize = `${fileName} - ${fileSize}KB`;
     document.querySelector('.file-name').textContent = fileNameAndSize;
+
   }
 
   return (
@@ -70,11 +74,14 @@ function App() {
             </img>
           </a>
         }
+        {message &&
+          <p className="message">
+            {message}
+          </p>
+        }
       </section>
     </div>
   );
-
-
 }
 
 export default App;
